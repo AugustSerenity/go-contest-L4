@@ -1,17 +1,28 @@
 package or
 
-func or(channels ...<-chan interface{}) <-chan interface{} {
+func Or(channels ...<-chan interface{}) <-chan interface{} {
 	done := make(chan interface{})
-	go func() {
-		defer close(done)
+	signal := make(chan struct{})
 
-		for _, ch := range channels {
-			go func(c <-chan interface{}) {
-				<-c
-				done <- struct{}{}
-			}(ch)
-		}
-		<-done
+	if len(channels) == 0 {
+		close(done)
+		return done
+	}
+
+	for _, ch := range channels {
+		go func(inCh <-chan interface{}) {
+			<-inCh
+
+			select {
+			case signal <- struct{}{}:
+			default:
+			}
+		}(ch)
+	}
+
+	go func() {
+		<-signal
+		close(done)
 	}()
 
 	return done
