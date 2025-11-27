@@ -26,7 +26,7 @@ func StartListener(addr string, svc Service) {
 				fmt.Fprintf(os.Stderr, "Error decoding data: %v\n", err)
 				return
 			}
-			fmt.Fprintf(os.Stderr, "Received %d chunks\n", len(data))
+			fmt.Fprintf(os.Stderr, "Received %d lines\n", len(data))
 			svc.HandleIncomingChunk(data)
 		}(conn)
 	}

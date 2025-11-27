@@ -1,11 +1,13 @@
 package service
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -38,17 +40,22 @@ func (s *Service) RunServer(in io.Reader, out io.Writer) {
 
 	time.Sleep(100 * time.Millisecond)
 
+	var flatData [][]string
+	for _, chunk := range processed {
+		flatData = append(flatData, chunk...)
+	}
+
 	for _, p := range s.Peers {
 		if p != "" && p != s.Addr {
 			fmt.Fprintf(os.Stderr, "Sending to peer: %s\n", p)
-			if err := SendChunks(p, processed); err != nil {
+			if err := SendChunks(p, flatData); err != nil {
 				fmt.Fprintf(os.Stderr, "Error sending to %s: %v\n", p, err)
 			}
 		}
 	}
 
-	for _, part := range processed {
-		for _, line := range part {
+	for _, chunk := range flatData {
+		for _, line := range chunk {
 			fmt.Fprintln(out, line)
 		}
 	}
@@ -67,9 +74,12 @@ func (s *Service) RunCoordinator(out io.Writer) {
 	for i := 0; i < N; i++ {
 		fmt.Fprintf(os.Stderr, "Waiting for data from peers (%d/%d)\n", i+1, N)
 		data := <-s.Incoming
-		fmt.Fprintf(os.Stderr, "Received chunk with %d lines\n", len(data))
-		for _, chunk := range data {
-			collected = append(collected, chunk...)
+		fmt.Fprintf(os.Stderr, "Received %d lines\n", len(data))
+
+		for _, arr := range data {
+			for _, line := range arr {
+				collected = append(collected, line)
+			}
 		}
 	}
 
@@ -95,7 +105,7 @@ func (s *Service) ProcessChunks(chunks [][]string) [][][]string {
 		i, chunk := i, chunk
 		wg.Add(1)
 		go func() {
-			out[i] = [][]string{s.CutLines(chunk)}
+			out[i] = s.CutLines(chunk)
 			wg.Done()
 		}()
 	}
@@ -104,7 +114,7 @@ func (s *Service) ProcessChunks(chunks [][]string) [][][]string {
 	return out
 }
 
-func SendChunks(addr string, chunks [][][]string) error {
+func SendChunks(addr string, chunks [][]string) error {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("failed to dial %s: %v", addr, err)
@@ -115,6 +125,29 @@ func SendChunks(addr string, chunks [][][]string) error {
 		return fmt.Errorf("failed to encode chunks: %v", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Sent %d chunks to %s\n", len(chunks), addr)
+	fmt.Fprintf(os.Stderr, "Sent %d lines to %s\n", len(chunks), addr)
 	return nil
+}
+
+func MergeAll(lines []string) []string {
+	sort.Strings(lines)
+	return lines
+}
+
+func SplitInput(r io.Reader) [][]string {
+	scanner := bufio.NewScanner(r)
+	chunk := make([]string, 0, 1000)
+	var chunks [][]string
+
+	for scanner.Scan() {
+		chunk = append(chunk, scanner.Text())
+		if len(chunk) == 1000 {
+			chunks = append(chunks, chunk)
+			chunk = make([]string, 0, 1000)
+		}
+	}
+	if len(chunk) > 0 {
+		chunks = append(chunks, chunk)
+	}
+	return chunks
 }

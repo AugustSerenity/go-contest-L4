@@ -12,16 +12,16 @@ type Options struct {
 	FieldsSet map[int]bool
 }
 
-func (s *Service) CutLines(lines []string) []string {
+func (s *Service) CutLines(lines []string) [][]string {
 	if s.Opts.FieldsSet == nil {
 		s.Opts.FieldsSet = parseFields(s.Opts.Fields)
 	}
 
-	var result []string
+	var result [][]string
 	for _, line := range lines {
 		out := processLine(line, s.Opts)
 		if out != "" {
-			result = append(result, out)
+			result = append(result, []string{out})
 		}
 	}
 	return result

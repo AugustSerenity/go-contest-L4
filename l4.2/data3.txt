@@ -1,3 +1,0 @@
-x	y	z
-p	q	r
-u	v	w

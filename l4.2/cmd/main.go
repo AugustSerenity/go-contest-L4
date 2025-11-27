@@ -33,7 +33,7 @@ func main() {
 	}
 
 	if *mode == "coord" {
-		fmt.Println("Running coordinator on", *addr)
+		fmt.Fprintln(os.Stderr, "Running coordinator on", *addr)
 		svc.RunCoordinator(os.Stdout)
 		return
 	}
