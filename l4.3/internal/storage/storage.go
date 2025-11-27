@@ -8,20 +8,20 @@ import (
 	"github.com/AugustSerenity/go-contest-L4/l4.3_Events-calendar/internal/model"
 )
 
-type Storage struct {
+type MemoryStorage struct {
 	mu           sync.RWMutex
 	events       map[int][]model.Event
 	eventCounter int
 }
 
-func New() *Storage {
-	return &Storage{
+func New() *MemoryStorage {
+	return &MemoryStorage{
 		events:       make(map[int][]model.Event),
 		eventCounter: 1,
 	}
 }
 
-func (st *Storage) Create(event model.Event) int {
+func (st *MemoryStorage) Create(event model.Event) int {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
@@ -34,7 +34,7 @@ func (st *Storage) Create(event model.Event) int {
 	return event.ID
 }
 
-func (st *Storage) Update(userID int, date time.Time, updated model.Event) error {
+func (st *MemoryStorage) Update(userID int, date time.Time, updated model.Event) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
@@ -56,7 +56,7 @@ func (st *Storage) Update(userID int, date time.Time, updated model.Event) error
 	return fmt.Errorf("event not found")
 }
 
-func (st *Storage) GetEventByTime(userID int, date time.Time, name string) (*model.Event, error) {
+func (st *MemoryStorage) GetEventByTime(userID int, date time.Time, name string) (*model.Event, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -74,7 +74,7 @@ func (st *Storage) GetEventByTime(userID int, date time.Time, name string) (*mod
 	return nil, fmt.Errorf("event not found")
 }
 
-func (st *Storage) ExactEventExists(userID int, date time.Time, name string) bool {
+func (st *MemoryStorage) ExactEventExists(userID int, date time.Time, name string) bool {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -91,7 +91,7 @@ func (st *Storage) ExactEventExists(userID int, date time.Time, name string) boo
 	return false
 }
 
-func (st *Storage) Delete(userID int, date time.Time, name string) error {
+func (st *MemoryStorage) Delete(userID int, date time.Time, name string) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
@@ -110,7 +110,7 @@ func (st *Storage) Delete(userID int, date time.Time, name string) error {
 	return fmt.Errorf("event not found")
 }
 
-func (st *Storage) GetEventsForDay(userID int, date time.Time) ([]model.Event, error) {
+func (st *MemoryStorage) GetEventsForDay(userID int, date time.Time) ([]model.Event, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -135,7 +135,7 @@ func (st *Storage) GetEventsForDay(userID int, date time.Time) ([]model.Event, e
 	return res, nil
 }
 
-func (st *Storage) GetEventsForWeek(userID int, date time.Time) ([]model.Event, error) {
+func (st *MemoryStorage) GetEventsForWeek(userID int, date time.Time) ([]model.Event, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -160,7 +160,7 @@ func (st *Storage) GetEventsForWeek(userID int, date time.Time) ([]model.Event, 
 	return res, nil
 }
 
-func (st *Storage) GetEventsForMonth(userID int, date time.Time) ([]model.Event, error) {
+func (st *MemoryStorage) GetEventsForMonth(userID int, date time.Time) ([]model.Event, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -184,7 +184,7 @@ func (st *Storage) GetEventsForMonth(userID int, date time.Time) ([]model.Event,
 	return res, nil
 }
 
-func (st *Storage) ArchiveOldEvents(cutoff time.Time) int {
+func (st *MemoryStorage) ArchiveOldEvents(cutoff time.Time) int {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
