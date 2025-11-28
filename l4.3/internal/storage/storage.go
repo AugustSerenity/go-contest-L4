@@ -65,9 +65,10 @@ func (st *MemoryStorage) GetEventByTime(userID int, date time.Time, name string)
 		return nil, fmt.Errorf("user not found")
 	}
 
-	for _, e := range userEvents {
+	for i := range userEvents {
+		e := &userEvents[i]
 		if e.Date.Equal(date) && e.Name == name && e.IsActive {
-			return &e, nil
+			return e, nil
 		}
 	}
 
