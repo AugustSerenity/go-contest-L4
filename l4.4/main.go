@@ -5,7 +5,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
-	"net/http/pprof"
+	_ "net/http/pprof"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -53,19 +53,19 @@ func main() {
 			memAllocGauge.Set(float64(m.Alloc))
 			memMallocGauge.Set(float64(m.Mallocs))
 			numGCGauge.Set(float64(m.NumGC))
-			lastGCGauge.Set(float64(m.LastGC))
-			percentGSGauge.Set(float64(-1))
+			lastGCGauge.Set(float64(m.LastGC) / 1e9)
+			percentGSGauge.Set(float64(debug.SetGCPercent(-1)))
 			time.Sleep(3 * time.Second)
 		}
 	}()
 
 	http.Handle("/metrics", promhttp.Handler())
 
-	http.HandleFunc("/debug/pprof/", pprof.Index)
-	http.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	http.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	http.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	http.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	//http.HandleFunc("/debug/pprof/", pprof.Index)
+	//http.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	//http.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	//http.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	//http.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 	fmt.Println("Listening to port", ":8080")
 	fmt.Println(http.ListenAndServe(":8080", nil))
