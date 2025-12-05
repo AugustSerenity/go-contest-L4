@@ -1,0 +1,10 @@
+goos: darwin
+goarch: arm64
+pkg: l2.18/internal/storage
+cpu: Apple M1
+BenchmarkExactEventExists-8   	    4538	    263513 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEventsForDay-8       	     988	   1219967 ns/op	    2720 B/op	       6 allocs/op
+PASS
+ok  	l2.18/internal/storage	4.278s
+
+

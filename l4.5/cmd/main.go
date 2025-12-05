@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 
 	"l2.18/internal/handler"
@@ -18,6 +19,11 @@ func main() {
 
 	addr := ":" + port
 
+	go func() {
+		log.Println("Starting pprof on :6060")
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	storage := storage.New()
 	srv := service.New(storage)
 	h := handler.New(srv)
@@ -31,4 +37,5 @@ func main() {
 	if err := s.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
+
 }
